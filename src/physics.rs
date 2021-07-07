@@ -93,7 +93,7 @@ mod tests {
   fn fluid_dynamics_set_density() {
     let mut fluids = FluidDynamics::default();
 
-    fluids.set_density(vec![3.0, 1.0, 6.0, 4.0, 8.0, 9.0].as_slice());
+    fluids.set_density(&[3.0, 1.0, 6.0, 4.0, 8.0, 9.0]);
 
     assert_eq!(fluids.size, 6);
     assert_slice_approx_eq(
@@ -103,18 +103,37 @@ mod tests {
   }
 
   #[test]
+  fn fluid_dynamics_set_density_empty() {
+    let mut fluids = FluidDynamics::default();
+
+    fluids.set_density(&[]);
+
+    assert_eq!(fluids.size, 0);
+    assert_slice_approx_eq(fluids.density.as_slice(), &[0.0, 0.0]);
+  }
+
+  #[test]
   fn fluid_dynamics_get_density() {
     let mut fluids = FluidDynamics::default();
 
-    fluids.set_density(vec![3.0, 1.0, 6.0, 4.0, 8.0, 9.0].as_slice());
+    fluids.set_density(&[3.0, 1.0, 6.0, 4.0, 8.0, 9.0]);
 
     assert_slice_approx_eq(fluids.get_density(), &[3.0, 1.0, 6.0, 4.0, 8.0, 9.0]);
   }
 
   #[test]
+  fn fluid_dynamics_get_density_empty() {
+    let mut fluids = FluidDynamics::default();
+
+    fluids.set_density(&[]);
+
+    assert_slice_approx_eq(fluids.get_density(), &[]);
+  }
+
+  #[test]
   fn fluid_dynamics_add_density() {
     let mut fluids = FluidDynamics::default();
-    fluids.set_density(vec![3.0, 1.0, 6.0, 4.0, 8.0, 9.0].as_slice());
+    fluids.set_density(&[3.0, 1.0, 6.0, 4.0, 8.0, 9.0]);
 
     fluids.add_density(1.0);
 
@@ -124,7 +143,7 @@ mod tests {
   #[test]
   fn fluid_dynamics_step() {
     let mut fluids = FluidDynamics::default();
-    fluids.set_density(vec![3.0, 1.0, 6.0, 4.0, 8.0, 9.0].as_slice());
+    fluids.set_density(&[3.0, 1.0, 6.0, 4.0, 8.0, 9.0]);
 
     fluids.step(0.05);
 
@@ -133,5 +152,19 @@ mod tests {
     assert_approx_eq!(total_density, 31.0, 0.1);
 
     assert_slice_approx_eq_with_epsilon(fluids.get_density(), &[2.8, 1.6, 5.4, 4.5, 7.7, 8.8], 0.1);
+  }
+
+  #[test]
+  fn fluid_dynamics_step_empty() {
+    let mut fluids = FluidDynamics::default();
+    fluids.set_density(&[]);
+
+    fluids.step(0.05);
+
+    let total_density: f64 = fluids.get_density().iter().cloned().sum();
+
+    assert_approx_eq!(total_density, 0.0);
+
+    assert_slice_approx_eq(fluids.get_density(), &[]);
   }
 }

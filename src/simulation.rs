@@ -45,7 +45,8 @@ impl Simulation {
   }
 
   pub fn step(&mut self) {
-    let delta_time = f64::min(self.delta_time, self.hours - self.time);
+    let remaining_time = (self.hours - self.time).clamp(0.0, self.hours);
+    let delta_time = f64::min(self.delta_time, remaining_time);
     self.time += delta_time;
     self.fluid_dynamics.add_density(delta_time);
     self.fluid_dynamics.step(delta_time);
@@ -206,6 +207,29 @@ pub mod tests {
   }
 
   #[test]
+  fn simulation_step_when_not_started() {
+    let mut sim = Simulation::new();
+    sim.hours = 4.0;
+    sim.step();
+
+    assert!(sim.is_running());
+    assert_approx_eq!(sim.get_time(), DELTA_TIME);
+    assert_slice_approx_eq(sim.get_levels(), &[]);
+  }
+
+  #[test]
+  fn simulation_step_when_time_over_hours() {
+    let mut sim = Simulation::new();
+    sim.time = 1.5;
+    sim.hours = 1.0;
+    sim.step();
+
+    assert!(!sim.is_running());
+    assert_approx_eq!(sim.get_time(), 1.5);
+    assert_slice_approx_eq(sim.get_levels(), &[]);
+  }
+
+  #[test]
   fn simulation_start_forward_when_not_finished() {
     let mut sim = Simulation::new();
     sim.hours = 4.0;
@@ -221,6 +245,8 @@ pub mod tests {
   #[test]
   fn simulation_start_forward_when_finished() {
     let mut sim = Simulation::new();
+    sim.time = 4.0;
+    sim.hours = 4.0;
     sim.running = false;
     sim.fast_forward = false;
 
@@ -228,6 +254,7 @@ pub mod tests {
 
     assert!(!sim.is_running());
     assert!(!sim.is_fast_forward());
+    assert_approx_eq!(sim.get_time(), 4.0);
   }
 
   #[test]
