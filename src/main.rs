@@ -69,7 +69,7 @@ async fn handle_connection(peer: SocketAddr, stream: TcpStream) -> Result<()> {
 mod tests {
   use std::time::Duration;
 
-use assert_approx_eq::assert_approx_eq;
+  use assert_approx_eq::assert_approx_eq;
   use futures::stream::StreamExt;
   use futures::{Future, Sink, SinkExt, Stream, TryStreamExt};
   use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
