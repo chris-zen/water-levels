@@ -11,7 +11,7 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::accept_async;
 use tungstenite::Error as WsError;
 
-use crate::protocol::Protocol;
+use crate::{protocol::Protocol, simulation::Simulation};
 
 const FEEDBACK_CHANNEL_SIZE: usize = 1024;
 
@@ -55,7 +55,9 @@ async fn handle_connection(peer: SocketAddr, stream: TcpStream) -> Result<()> {
 
   let (outgoing_feedback_loop, incoming_feedback_loop) = mpsc::channel(FEEDBACK_CHANNEL_SIZE);
 
-  Protocol::new()
+  let simulation = Simulation::new();
+
+  Protocol::new(simulation)
     .run(
       outgoing_messages,
       incoming_messages,

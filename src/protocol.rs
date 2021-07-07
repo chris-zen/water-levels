@@ -38,10 +38,8 @@ pub struct Protocol {
 }
 
 impl Protocol {
-  pub fn new() -> Self {
-    Self {
-      simulation: Simulation::new(),
-    }
+  pub fn new(simulation: Simulation) -> Self {
+    Self { simulation }
   }
 
   pub async fn run<'a, MessagesOut, MessagesIn, MessagesErr, FeedbackTx, FeedbackRx, FeedbackErr>(
@@ -191,7 +189,7 @@ mod tests {
 
   #[tokio::test]
   async fn protocol_start() {
-    with_context(|mut context| async move {
+    with_context(Simulation::new(), |mut context| async move {
       context.send_incoming_message(Event::Start {
         hours: 4.0,
         landscape: vec![1.0, 2.0],
@@ -220,24 +218,9 @@ mod tests {
 
   #[tokio::test]
   async fn protocol_step() {
-    with_context(|mut context| async move {
-      context.send_incoming_message(Event::Start {
-        hours: DELTA_TIME * 2.0,
-        landscape: vec![1.0, 4.0],
-      });
-
-      sleep(Duration::from_millis(500)).await;
-
-      context.expect_progress_with(|running, time, levels| {
-        assert!(running);
-        assert_approx_eq!(time, 0.0);
-        assert_slice_approx_eq(levels.as_slice(), &[1.0, 4.0])
-      });
-
-      context.expect_feedback_with(|event| {
-        assert_eq!(event, Event::Step);
-      });
-
+    let mut simulation = Simulation::new();
+    simulation.start(&[1.0, 4.0], DELTA_TIME * 2.0);
+    with_context(simulation, |mut context| async move {
       context.send_feedback(Event::Step);
 
       sleep(Duration::from_millis(STEP_DELAY_MILLIS - 1)).await;
@@ -273,17 +256,9 @@ mod tests {
 
   #[tokio::test]
   async fn protocol_forward() {
-    with_context(|mut context| async move {
-      context.send_incoming_message(Event::Start {
-        hours: 4.0,
-        landscape: vec![1.0, 4.0],
-      });
-
-      sleep(Duration::from_millis(500)).await;
-
-      context.expect_progress_with(|_, _, _| ());
-      context.expect_feedback_with(|_| ());
-
+    let mut simulation = Simulation::new();
+    simulation.start(&[1.0, 4.0], DELTA_TIME * 4.0);
+    with_context(simulation, |mut context| async move {
       context.send_incoming_message(Event::Forward);
 
       sleep(Duration::from_millis(10)).await;
@@ -302,24 +277,10 @@ mod tests {
 
   #[tokio::test]
   async fn protocol_forward_step() {
-    with_context(|mut context| async move {
-      context.send_incoming_message(Event::Start {
-        hours: FORWARD_HOURS * 2.0,
-        landscape: vec![1.0, 4.0],
-      });
-
-      sleep(Duration::from_millis(500)).await;
-
-      context.expect_progress_with(|_, _, _| ());
-      context.expect_feedback_with(|_| ());
-
-      context.send_incoming_message(Event::Forward);
-
-      sleep(Duration::from_millis(500)).await;
-
-      context.expect_progress_with(|_, _, _| ());
-      context.expect_feedback_with(|_| ());
-
+    let mut simulation = Simulation::new();
+    simulation.start(&[1.0, 4.0], FORWARD_HOURS * 2.0);
+    simulation.start_forward();
+    with_context(simulation, |mut context| async move {
       context.send_feedback(Event::ForwardStep);
 
       sleep(Duration::from_millis(10)).await;
@@ -348,18 +309,10 @@ mod tests {
   }
 
   #[tokio::test]
-  async fn protocol_pause() {
-    with_context(|mut context| async move {
-      context.send_incoming_message(Event::Start {
-        hours: 4.0,
-        landscape: vec![1.0, 4.0],
-      });
-
-      sleep(Duration::from_millis(500)).await;
-
-      context.expect_progress_with(|_, _, _| ());
-      context.expect_feedback_with(|_| ());
-
+  async fn protocol_pause_and_resume() {
+    let mut simulation = Simulation::new();
+    simulation.start(&[1.0, 4.0], 4.0);
+    with_context(simulation, |mut context| async move {
       context.send_incoming_message(Event::Pause);
 
       sleep(Duration::from_millis(500)).await;
@@ -385,7 +338,7 @@ mod tests {
     .await
   }
 
-  async fn with_context<F, FT, T>(mut f: F) -> T
+  async fn with_context<F, FT, T>(simulation: Simulation, mut f: F) -> T
   where
     F: FnMut(Context) -> FT,
     FT: Future<Output = T>,
@@ -399,7 +352,7 @@ mod tests {
     let (feedback_loop_tx, incoming_feedback_loop) = mpsc::channel::<Event>(CHANNEL_SIZE);
 
     tokio::spawn(async {
-      Protocol::new()
+      Protocol::new(simulation)
         .run(
           outgoing_messages,
           incoming_messages,
