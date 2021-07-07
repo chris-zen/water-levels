@@ -121,7 +121,8 @@ fly-deploy: docker-build
 
 ci-setup:
 	@echo "Setting up CI ..."
-	curl -L https://fly.io/install.sh | sh
+	[ "$${CI}" = "true" ] && (curl -L "https://fly.io/install.sh" | sh)
+	[ -f "$${GITHUB_PATH}" ] && echo "${HOME}/.fly/bin" >> $${GITHUB_PATH}
 	$(MAKE) frontend-setup
 
 ci-test: ci-update-project-version
