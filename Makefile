@@ -121,6 +121,7 @@ fly-deploy: docker-build
 
 ci-setup:
 	@echo "Setting up CI ..."
+	curl -L https://fly.io/install.sh | sh
 	$(MAKE) frontend-setup
 
 ci-test: ci-update-project-version
