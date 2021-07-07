@@ -1,0 +1,8 @@
+elm-stuff/
+node_modules/
+dist/
+public/
+bundle.js*
+package-lock.json
+*.bak
+.env

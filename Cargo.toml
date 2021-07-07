@@ -1,0 +1,22 @@
+[package]
+name = "water-levels"
+version = "0.1.0"
+authors = ["Christian Perez Llamas"]
+edition = "2018"
+
+[dependencies]
+log = "0.4"
+env_logger = "0.8"
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+futures = "0.3"
+futures-channel = "0.3"
+futures-util = { version = "0.3", default-features = false, features = ["async-await", "sink", "std"] }
+tokio = { version = "^1.0.0", default-features = false, features = ["time"] }
+tungstenite = "0.13.0"
+tokio-tungstenite = "0.14.0"
+
+[dev-dependencies]
+assert_approx_eq = "1.1.0"
+tokio = { version = "^1.0.0", default-features = false, features = ["macros", "rt-multi-thread"] }
