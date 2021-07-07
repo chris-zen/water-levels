@@ -57,7 +57,7 @@ test:
 	RUST_LOG=$(TEST_RUST_LOG) cargo test $(TEST_PROFILE_ARG) -- --nocapture
 
 run:
-	cargo run
+	RUST_LOG=$(TEST_RUST_LOG) cargo run $(BUILD_PROFILE_ARG)
 
 clean:
 	cargo clean
