@@ -122,11 +122,11 @@ mod tests {
     FT: Future<Output = T>,
   {
     let port: u16 = 9002;
-    let addr = format!("0.0.0.0:{}", port);
+    let addr = format!("127.0.0.1:{}", port);
     tokio::spawn(start_server(addr.clone()));
     tokio::time::sleep(Duration::from_secs(1)).await;
 
-    let url = format!("ws://0.0.0.0:{}", port);
+    let url = format!("ws://127.0.0.1:{}", port);
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
     let (write, read) = ws_stream.split();
 
