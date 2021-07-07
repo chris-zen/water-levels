@@ -67,7 +67,9 @@ async fn handle_connection(peer: SocketAddr, stream: TcpStream) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-  use assert_approx_eq::assert_approx_eq;
+  use std::time::Duration;
+
+use assert_approx_eq::assert_approx_eq;
   use futures::stream::StreamExt;
   use futures::{Future, Sink, SinkExt, Stream, TryStreamExt};
   use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
@@ -122,6 +124,7 @@ mod tests {
     let port: u16 = 9002;
     let addr = format!("0.0.0.0:{}", port);
     tokio::spawn(start_server(addr.clone()));
+    tokio::time::sleep(Duration::from_secs(1)).await;
 
     let url = format!("ws://0.0.0.0:{}", port);
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
