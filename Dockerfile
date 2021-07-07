@@ -8,7 +8,7 @@ COPY water-levels ./water-levels
 RUN chmod 755 ./water-levels
 
 RUN mkdir -p /opt/app/static
-COPY frontend/public/bundle.js ./static
+COPY frontend/bundle.js ./static
 COPY frontend/index.html ./static
 COPY frontend/favicon/* ./static
 
