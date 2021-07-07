@@ -6,6 +6,9 @@ APP_MIN_FILE := elm.min.js
 
 WS_URL ?= ws://127.0.0.1:9002
 
+setup:
+	npm install
+
 elm-format:
 	npm exec -- elm-format $(ELM_SRC)
 
@@ -18,4 +21,4 @@ elm-build:
 webpack: .env
 	npx webpack --mode=production
 
-.PHONY: elm-format elm-build webpack
+.PHONY: setup elm-format elm-build webpack

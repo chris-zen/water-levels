@@ -19,7 +19,7 @@ jobs:
       - uses: jorelali/setup-elm@v3
         with:
           elm-version: 0.19.1
-      - run: npm install
+      - run: make ci-setup
       - run: make ci-test
       - run: make ci-deploy WS_URL=wss://water-levels.fly.dev
 

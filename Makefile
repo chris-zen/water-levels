@@ -64,6 +64,9 @@ clean:
 
 # --[ Frontend ]---------------------------------------------------------------------
 
+frontend-setup:
+	$(MAKE) -C frontend setup
+
 frontend-build:
 	$(MAKE) -C frontend webpack WS_URL=$(WS_URL)
 
@@ -116,6 +119,10 @@ fly-deploy: docker-build
 
 # --[ CI ]---------------------------------------------------------------------
 
+ci-setup:
+	@echo "Setting up CI ..."
+	$(MAKE) frontend-setup
+
 ci-test: ci-update-project-version
 	@echo "Running all the tests ..."
 	$(MAKE) check-format clippy test
@@ -130,7 +137,7 @@ ci-update-project-version:
 # -----------------------------------------------------------------------------
 
 .PHONY: build clippy format check-format test run clean local-all
-.PHONY: frontend-build
+.PHONY: frontend-setup frontend-build
 .PHONY: docker-binary-build-linux docker-binary-build-macos docker-binary-copy docker-build docker-login docker-push docker-run docker-clean
 .PHONY: fly-deploy
 .PHONY: ci-test ci-deploy ci-update-project-version
