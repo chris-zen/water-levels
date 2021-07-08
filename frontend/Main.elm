@@ -444,7 +444,7 @@ view model =
                 Simulating ->
                     viewSimulation model.simulation
     in
-    div [ class "container-fluid" ] content
+    div [ class "container-md" ] content
 
 
 viewConfigForm : Config -> List (Html Msg)
