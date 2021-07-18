@@ -1,7 +1,6 @@
 port module Main exposing (..)
 
 import Browser
-import Color.Manipulate as Manipulate
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -546,16 +545,34 @@ viewSimulation simulation =
             { time = Basics.toFloat index, level = level }
 
         landscape_with_append =
-            List.append simulation.landscape [List.head (List.reverse simulation.landscape) |> Maybe.withDefault 0]
-        
+            List.append simulation.landscape [ List.head (List.reverse simulation.landscape) |> Maybe.withDefault 0 ]
+
         initial =
             List.map2 toDatum indices landscape_with_append
 
         progress_levels_with_append =
-            List.append simulation.progress.levels [List.head (List.reverse simulation.progress.levels) |> Maybe.withDefault 0.0]
+            List.append simulation.progress.levels [ List.head (List.reverse simulation.progress.levels) |> Maybe.withDefault 0.0 ]
 
         levels =
             List.map2 toDatum indices progress_levels_with_append
+
+        formatLevel value =
+            let
+                str =
+                    String.fromFloat (toFloat (truncate (value * 10.0)) / 10.0)
+            in
+            if not (String.contains "." str) then
+                String.concat [ str, ".0" ]
+
+            else
+                str
+
+        levelsStr =
+            let
+                waterLevels =
+                    List.map2 (-) simulation.progress.levels simulation.landscape
+            in
+                String.concat [ "[ ", String.join ", " (List.map formatLevel waterLevels), " ]" ]
     in
     [ div [ class "row" ] [ viewTitle ]
     , viewSimulationProgress simulation
@@ -564,6 +581,13 @@ viewSimulation simulation =
             [ LineChart.viewCustom (chartConfig simulation.progress.levels)
                 [ LineChart.line Colors.blueLight Dots.circle "Levels" levels
                 , LineChart.line Colors.rust Dots.none "Initial" initial
+                ]
+            ]
+        ]
+    , div [ class "row" ]
+        [ div [ class "col-12" ]
+            [ div [ class "position-absolute start-50 translate-middle-x" ]
+                [ strong [ class "fs-4" ] [ text levelsStr ]
                 ]
             ]
         ]
@@ -688,7 +712,7 @@ type alias Datum =
 
 chartConfig : List Float -> LineChart.Config Datum Msg
 chartConfig levels =
-    { x = xAxisConfig ((List.length levels) + 1)
+    { x = xAxisConfig (List.length levels + 1)
     , y = yAxisConfig (List.maximum levels |> Maybe.withDefault 10.0)
     , container = containerConfig
     , interpolation = Interpolation.stepped
