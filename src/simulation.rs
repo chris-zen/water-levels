@@ -175,15 +175,14 @@ pub mod tests {
   }
 
   #[test]
-  fn simulation_step_diffuses_densities() {
+  fn simulation_step_accumulates_water() {
     let mut sim = Simulation::new();
     sim.start(&[1.0, 8.0], 1.0);
 
     sim.step();
 
     let levels = sim.get_levels();
-    assert!(levels[0] > 1.0);
-    assert!(levels[1] < 8.0);
+    assert_slice_approx_eq(levels.as_slice(), &[1.1, 8.0]);
   }
 
   #[test]
@@ -261,15 +260,15 @@ pub mod tests {
   }
 
   #[test]
-  fn simulation_forward_diffuses_densities() {
+  fn simulation_forward_accumulates_water() {
     let mut sim = Simulation::new();
     sim.start(&[1.0, 8.0], 1.0);
 
-    sim.step();
+    sim.start_forward();
+    sim.forward(1.0);
 
     let levels = sim.get_levels();
-    assert!(levels[0] > 1.0);
-    assert!(levels[1] < 8.0);
+    assert_slice_approx_eq(levels.as_slice(), &[3.0, 8.0]);
   }
 
   #[test]

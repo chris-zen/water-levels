@@ -100,7 +100,7 @@ mod tests {
         {
           if !running {
             assert_approx_eq!(time, 1.0);
-            assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[2.39, 2.60], 0.01);
+            assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[2.5, 2.5], 0.01);
             break;
           } else {
             counter += 1;

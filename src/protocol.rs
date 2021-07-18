@@ -228,7 +228,7 @@ mod tests {
       context.expect_progress_with(|running, time, levels| {
         assert!(running);
         assert_approx_eq!(time, DELTA_TIME);
-        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.16, 3.93], 0.01)
+        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.1, 4.0], 0.01)
       });
 
       context.expect_feedback_empty();
@@ -246,7 +246,7 @@ mod tests {
       context.expect_progress_with(|running, time, levels| {
         assert!(!running);
         assert_approx_eq!(time, DELTA_TIME * 2.0);
-        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.31, 3.88], 0.01)
+        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.2, 4.0], 0.01)
       });
 
       context.expect_feedback_empty();
