@@ -151,7 +151,7 @@ where
   let progress = Event::Progress {
     running: simulation.is_running(),
     time: simulation.get_time(),
-    levels: Vec::from(simulation.get_levels()), // TODO optimize to avoid copy
+    levels: simulation.get_levels(),
   };
   send_event(progress, outbound).await
 }

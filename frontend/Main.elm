@@ -194,7 +194,7 @@ init : () -> ( Model, Cmd Msg )
 init flags =
     ( { stage = Configuring
       , config =
-            { landscape = Valid [ 3, 1, 6, 4, 8, 9 ]
+            { landscape = Valid [ 6, 4, 5, 9, 9, 2, 6, 5, 9, 7 ]
             , hours = Valid 4
             }
       , simulation =
@@ -444,7 +444,7 @@ view model =
                 Simulating ->
                     viewSimulation model.simulation
     in
-    div [ class "container-md" ] content
+    div [ class "container-sm" ] content
 
 
 viewConfigForm : Config -> List (Html Msg)
@@ -540,24 +540,30 @@ viewSimulation simulation =
             List.length simulation.progress.levels
 
         indices =
-            List.range 1 len
+            List.range 1 (len + 1)
 
         toDatum index level =
             { time = Basics.toFloat index, level = level }
 
+        landscape_with_append =
+            List.append simulation.landscape [List.head (List.reverse simulation.landscape) |> Maybe.withDefault 0]
+        
         initial =
-            List.map2 toDatum indices simulation.landscape
+            List.map2 toDatum indices landscape_with_append
+
+        progress_levels_with_append =
+            List.append simulation.progress.levels [List.head (List.reverse simulation.progress.levels) |> Maybe.withDefault 0.0]
 
         levels =
-            List.map2 toDatum indices simulation.progress.levels
+            List.map2 toDatum indices progress_levels_with_append
     in
     [ div [ class "row" ] [ viewTitle ]
     , viewSimulationProgress simulation
     , div [ class "row" ]
         [ div [ class "col-12" ]
             [ LineChart.viewCustom (chartConfig simulation.progress.levels)
-                [ LineChart.line Colors.grayLightest Dots.circle "Initial" initial
-                , LineChart.line Colors.blueLight Dots.circle "Levels" levels
+                [ LineChart.line Colors.blueLight Dots.circle "Levels" levels
+                , LineChart.line Colors.rust Dots.none "Initial" initial
                 ]
             ]
         ]
@@ -682,14 +688,14 @@ type alias Datum =
 
 chartConfig : List Float -> LineChart.Config Datum Msg
 chartConfig levels =
-    { x = xAxisConfig (List.length levels)
+    { x = xAxisConfig ((List.length levels) + 1)
     , y = yAxisConfig (List.maximum levels |> Maybe.withDefault 10.0)
     , container = containerConfig
-    , interpolation = Interpolation.monotone
+    , interpolation = Interpolation.stepped
     , intersection = Intersection.default
     , legends = Legends.none
     , events = Events.default
-    , area = Area.normal 0.4
+    , area = Area.normal 0.9
     , grid = Grid.default
     , line = Line.default
     , dots = Dots.default

@@ -1,4 +1,4 @@
-use crate::physics::FluidDynamics;
+use crate::water_flow::WaterFlow;
 
 pub(crate) const DELTA_TIME: f64 = 0.05;
 
@@ -9,7 +9,7 @@ pub struct Simulation {
   fast_forward: bool,
   delta_time: f64,
   time: f64,
-  fluid_dynamics: FluidDynamics,
+  water_levels: WaterFlow,
 }
 
 impl Simulation {
@@ -21,7 +21,7 @@ impl Simulation {
       fast_forward: false,
       delta_time: DELTA_TIME,
       time: 0.0,
-      fluid_dynamics: FluidDynamics::default(),
+      water_levels: WaterFlow::new(vec![]),
     }
   }
 
@@ -31,7 +31,8 @@ impl Simulation {
     self.running = true;
     self.fast_forward = false;
     self.time = 0.0;
-    self.fluid_dynamics.set_density(landscape);
+    let terrain = landscape.iter().map(|segment| *segment as u32).collect();
+    self.water_levels = WaterFlow::new(terrain);
   }
 
   pub fn pause(&mut self) {
@@ -48,8 +49,7 @@ impl Simulation {
     let remaining_time = (self.hours - self.time).clamp(0.0, self.hours);
     let delta_time = f64::min(self.delta_time, remaining_time);
     self.time += delta_time;
-    self.fluid_dynamics.add_density(delta_time);
-    self.fluid_dynamics.step(delta_time);
+    self.water_levels.rain(self.time);
     self.running = !self.is_finished();
   }
 
@@ -86,8 +86,8 @@ impl Simulation {
   }
 
   #[inline]
-  pub fn get_levels(&self) -> &[f64] {
-    self.fluid_dynamics.get_density()
+  pub fn get_levels(&self) -> Vec<f64> {
+    self.water_levels.total_levels()
   }
 }
 
@@ -121,7 +121,7 @@ pub mod tests {
     assert_approx_eq!(sim.get_time(), 0.0);
     assert!(sim.is_running());
     assert!(!sim.is_fast_forward());
-    assert_slice_approx_eq(sim.get_levels(), &[1.0, 2.0, 3.0, 4.0]);
+    assert_slice_approx_eq(sim.get_levels().as_slice(), &[1.0, 2.0, 3.0, 4.0]);
   }
 
   #[test]
@@ -168,7 +168,10 @@ pub mod tests {
 
     sim.step();
 
-    assert_slice_approx_eq(sim.get_levels(), &[1.0 + DELTA_TIME, 1.0 + DELTA_TIME]);
+    assert_slice_approx_eq(
+      sim.get_levels().as_slice(),
+      &[1.0 + DELTA_TIME, 1.0 + DELTA_TIME],
+    );
   }
 
   #[test]
@@ -214,7 +217,7 @@ pub mod tests {
 
     assert!(sim.is_running());
     assert_approx_eq!(sim.get_time(), DELTA_TIME);
-    assert_slice_approx_eq(sim.get_levels(), &[]);
+    assert_slice_approx_eq(sim.get_levels().as_slice(), &[]);
   }
 
   #[test]
@@ -226,7 +229,7 @@ pub mod tests {
 
     assert!(!sim.is_running());
     assert_approx_eq!(sim.get_time(), 1.5);
-    assert_slice_approx_eq(sim.get_levels(), &[]);
+    assert_slice_approx_eq(sim.get_levels().as_slice(), &[]);
   }
 
   #[test]
