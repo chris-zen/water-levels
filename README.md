@@ -76,13 +76,11 @@ When one of the children sinks fills up, the excess of water will spill into the
 
 ![](images/algorithm2.png)
 
-The spilling of water into the siblings will happen in both directions and following the right proportions and the available capacity.
+The spilling of water into the siblings will happen in both directions and following the right proportions according to the available capacity.
 
 ![](images/algorithm3.png)
 
 ### Complexity
-
-**TODO**
 
 **Inputs:**
 
@@ -93,8 +91,69 @@ The spilling of water into the siblings will happen in both directions and follo
 
 - The level of the water in the different segments
 
-**Given:**
+The algorithm can be expressed in pseudo-code (including the expansion of the key functions) like:
 
+![](images/pseudocode.png)
+
+- Let `N` be the number of segments in a landscape.
+- Let `A` be the number of areas for a certain level, which in the worst case will be `N+2`.
+- Let `S` be the number of Sinks, which in the worst case will be `ceil(N/2)`.
+- Let `log S` be the maximum height of the hierarchy tree.
+- The complexity of the operation at the leaves of the recursion tree is constant time.
+- The asymptotic complexity will depend on the individual complexities of each of the three parts of the algorithm (`build_sink_hierarchy`, `fill_sink_with_water`, `flood_water_to_landscape`).
+
+**build_sink_hierarchy:**
+
+```
+T(build_sink_hierarchy) = T(scan_areas) + A * T(calculate_sink_weight) + A * T(build_sink_hierarchy)
+```
+
+Given that `scan_areas` is `O(N)`, and `calculate_sink_weight` is `O(1)`, and assuming that the longest path of a sink tree is logarithmic (the recursion), and substituting `A` by the worst case `N` (asymptotically speaking), we can rewrite it to:
+
+```
+T(build_sink_hierarchy) = O(N) + O(N) + O(N * log N)
+T(build_sink_hierarchy) = O(N * log N)
+```
+
+**fill_sink_with_water:**
+
+```
+T(fill_sink_with_water) = T(fill_downstream_sinks_with_water) + T(spill_excess_water_through_sinks) + O(1)
+
+T(fill_downstream_sinks_with_water) = S * T(fill_sink_with_water)
+T(fill_downstream_sinks_with_water) = O(S * log S)
+T(fill_downstream_sinks_with_water) = O(N * log N)
+
+T(spill_excess_water_through_sinks) = S * (O(S) + S * T(fill_sink_with_water))
+T(spill_excess_water_through_sinks) = S * (O(S) + O(S * log S))
+T(spill_excess_water_through_sinks) = O(S^2) + O(S^2 * log S)
+T(spill_excess_water_through_sinks) = O(N^2 * log N)
+
+T(fill_sink_with_water) = O(N * log N) + O(N^2 * log N) + O(1)
+T(fill_sink_with_water) = O(N^2 * log N)
+```
+
+**flood_water_to_landscape:**
+
+```
+T(flood_water_to_landscape) = S * T(flood_water_to_landscape) + O(S)
+T(flood_water_to_landscape) = O(S * log S) + O(S)
+T(flood_water_to_landscape) = O(S * log S)
+T(flood_water_to_landscape) = O(N * log N)
+```
+
+
+**Final asymptotic complexity:**
+
+```
+O(N * log N) + O(N^2 * log N) + O(N * log N)
+```
+
+which results in
+
+```
+O(N^2 * log N)
+```
 
 ### Test Cases
 
