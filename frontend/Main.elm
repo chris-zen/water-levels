@@ -567,12 +567,14 @@ viewSimulation simulation =
             else
                 str
 
+        waterLevels =
+            List.map2 (-) simulation.progress.levels simulation.landscape
+
         levelsStr =
-            let
-                waterLevels =
-                    List.map2 (-) simulation.progress.levels simulation.landscape
-            in
-                String.concat [ "[ ", String.join ", " (List.map formatLevel waterLevels), " ]" ]
+            String.concat [ "[ ", String.join ", " (List.map formatLevel waterLevels), " ]" ]
+
+        totalVolume =
+            formatLevel (List.sum waterLevels)
     in
     [ div [ class "row" ] [ viewTitle ]
     , viewSimulationProgress simulation
@@ -587,7 +589,7 @@ viewSimulation simulation =
     , div [ class "row" ]
         [ div [ class "col-12" ]
             [ div [ class "position-absolute start-50 translate-middle-x" ]
-                [ strong [ class "fs-4" ] [ text levelsStr ]
+                [ strong [ class "fs-4" ] [ text (levelsStr ++ " => " ++ totalVolume) ]
                 ]
             ]
         ]
