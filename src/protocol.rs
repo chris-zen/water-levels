@@ -11,7 +11,7 @@ use tungstenite::{Error as WsError, Message};
 
 use crate::simulation::Simulation;
 
-const FORWARD_HOURS: f64 = 1000.0;
+const FORWARD_HOURS: f64 = 1.0;
 const STEP_DELAY_MILLIS: u64 = 200;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

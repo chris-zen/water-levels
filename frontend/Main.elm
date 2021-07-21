@@ -559,7 +559,7 @@ viewSimulation simulation =
         formatLevel value =
             let
                 str =
-                    String.fromFloat (toFloat (truncate (value * 10.0)) / 10.0)
+                    String.fromFloat (toFloat (round (value * 100.0)) / 100.0)
             in
             if not (String.contains "." str) then
                 String.concat [ str, ".0" ]

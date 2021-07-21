@@ -124,7 +124,7 @@ T(fill_downstream_sinks_with_water) = S * T(fill_sink_with_water)
 T(fill_downstream_sinks_with_water) = O(S * log S)
 T(fill_downstream_sinks_with_water) = O(N * log N)
 
-T(spill_excess_water_through_sinks) = S * (O(S) + S * T(fill_sink_with_water))
+T(spill_excess_water_through_sinks) = S * (O(S) + S * T(spill_water))
 T(spill_excess_water_through_sinks) = S * (O(S) + O(S * log S))
 T(spill_excess_water_through_sinks) = O(S^2) + O(S^2 * log S)
 T(spill_excess_water_through_sinks) = O(N^2 * log N)
@@ -176,6 +176,21 @@ You can observe how the segments 7 and 13 spill into the center without filling 
 ```
 
 ![](images/testcase2.png)
+
+**This case spills recursively and fills remaining water to the upper sinks**
+```
+1,4,2,5,3,6,4,7,5,8,6,9,7
+```
+
+![](images/testcase3.png)
+
+**This represents a combination of different possible cases**
+
+```
+1,2,3,4,5,6,7,8,9,8,7,6,5,4,3,2,1,1,1,3,3,8,1,0,11,9,1,2,1,1,2,1,2,1,2,2,1,1,1,5,5,8,7,8,1
+```
+
+![](images/testcase4.png)
 
 ## Development instructions
 

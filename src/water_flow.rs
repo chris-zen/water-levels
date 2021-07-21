@@ -92,11 +92,12 @@ impl Sink {
 
   #[inline]
   pub fn total_water(&self) -> f64 {
-    self
-      .children
-      .iter()
-      .map(|child| child.water)
-      .fold(0.0, |accum, water| accum + water)
+    self.water
+      + self
+        .children
+        .iter()
+        .map(|child| child.total_water())
+        .fold(0.0, |accum, water| accum + water)
   }
 }
 
@@ -141,13 +142,20 @@ impl WaterFlow {
 
     let total_width = (end - start + 1) as f64;
 
+    let mut total_weight = 0.0;
     for index in 1..areas.len() - 1 {
       if let Area::Sink { start, end, bottom } = &areas[index] {
         let weight = Self::calculate_sink_weight(areas.as_slice(), index, total_width);
+        total_weight += weight;
         let children = Self::build_sinks_hierarchy(landscape, *start, *end, *bottom);
         let sink = Sink::new(weight, *start, *end, level, *bottom, children);
         sinks.push(sink);
       }
+    }
+
+    // In case there are floating point errors that we need to compensate for
+    if !sinks.is_empty() && total_weight < 1.0 {
+      sinks[0].weight += 1.0 - total_weight;
     }
 
     sinks
@@ -313,9 +321,18 @@ impl WaterFlow {
     let mut total_filled = 0.0;
     let mut total_excess = 0.0;
 
+    // We need to compensate for possible floating point errors
+    let total_quota = sink
+      .children
+      .iter()
+      .map(|child| amount * child.weight)
+      .fold(0.0, |acc, quota| acc + quota);
+    let mut quota_error = amount - total_quota;
+
     for (child, sink_excess) in sink.children.iter_mut().zip(excess.iter_mut()) {
       if !child.is_full() {
-        let quota = amount * child.weight;
+        let quota = amount * child.weight + quota_error;
+        quota_error = 0.0;
         let filled = Self::fill_sink_with_water(landscape, child, quota);
         *sink_excess = quota - filled;
         total_excess += *sink_excess;
@@ -345,8 +362,10 @@ impl WaterFlow {
             let (left_water, right_water) =
               Self::spilled_amount(*sink_excess, left_capacity, right_capacity);
             let children = sink.children.as_mut_slice();
-            let left_spilled = Self::spill_water(landscape, children, index, -1, left_water);
-            let right_spilled = Self::spill_water(landscape, children, index, 1, right_water);
+            let left_spilled =
+              Self::spill_water(landscape, children, index as isize, -1, left_water);
+            let right_spilled =
+              Self::spill_water(landscape, children, index as isize, 1, right_water);
             let spilled = left_spilled + right_spilled;
             *sink_excess -= spilled;
             total_spilled += spilled;
@@ -387,7 +406,7 @@ impl WaterFlow {
   fn spill_water(
     landscape: &[SegmentLevel],
     sinks: &mut [Sink],
-    index: usize,
+    index: isize,
     direction: isize,
     mut amount: f64,
   ) -> f64 {
@@ -396,8 +415,19 @@ impl WaterFlow {
     index += direction;
     while amount > 0.0 && index >= 0 && (index as usize) < sinks.len() {
       let sink = &mut sinks[index as usize];
-      if sink.total_capacity > 0.0 {
-        let spill_amount = Self::fill_sink_with_water(landscape, sink, amount);
+      if sink.total_capacity - sink.total_water() > 0.0 {
+        let spill_amount = if sink.children.is_empty() {
+          Self::fill_sink_with_water(landscape, sink, amount)
+        } else {
+          let index = if direction == -1 {
+            sink.children.len() as isize
+          } else {
+            -1
+          };
+          let children_amount =
+            Self::spill_water(landscape, &mut sink.children, index, direction, amount);
+          Self::fill_sink_with_water(landscape, sink, amount - children_amount) + children_amount
+        };
         total_spilled += spill_amount;
         amount -= spill_amount;
       }
@@ -448,6 +478,10 @@ impl WaterFlow {
 
 #[cfg(test)]
 mod tests {
+  use assert_approx_eq::assert_approx_eq;
+  use rand::thread_rng;
+  use rand::Rng;
+
   use super::*;
   use crate::simulation::tests::assert_slice_approx_eq_with_epsilon;
 
@@ -604,5 +638,39 @@ mod tests {
       &[2.0, 5.0, 2.0, 0.0, 1.0],
       0.1,
     );
+  }
+
+  #[test]
+  fn water_flow_rain_spill_with_recursion_and_fill_up() {
+    let mut water_flow = WaterFlow::new(vec![4, 7, 5, 8, 6, 9, 7]);
+
+    water_flow.rain(2.0);
+
+    assert_slice_approx_eq_with_epsilon(
+      water_flow.water.as_slice(),
+      &[4.4, 1.4, 3.4, 0.4, 2.4, 0.0, 2.0],
+      0.1,
+    );
+  }
+
+  #[test]
+  fn water_flow_rain_total_volume_is_conserved_within_an_error_interval() {
+    let mut rng = thread_rng();
+    for _ in 0..1000 {
+      let size = rng.gen_range(1..100);
+      let mut landscape = Vec::with_capacity(size);
+      for _ in 0..size {
+        landscape.push(rng.gen_range(0..20))
+      }
+
+      let mut water_flow = WaterFlow::new(landscape);
+
+      let hours = rng.gen_range(1..10) as f64;
+      water_flow.rain(hours);
+
+      let volume = water_flow.water.iter().fold(0.0, |acc, &x| acc + x);
+      let expected_volume = size as f64 * hours;
+      assert_approx_eq!(volume, expected_volume, expected_volume * 0.07);
+    }
   }
 }

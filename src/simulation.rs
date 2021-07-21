@@ -1,6 +1,6 @@
 use crate::water_flow::WaterFlow;
 
-pub(crate) const DELTA_TIME: f64 = 0.05;
+pub(crate) const DELTA_TIME: f64 = 0.1;
 
 pub struct Simulation {
   hours: f64,
