@@ -228,7 +228,7 @@ mod tests {
       context.expect_progress_with(|running, time, levels| {
         assert!(running);
         assert_approx_eq!(time, DELTA_TIME);
-        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.1, 4.0], 0.01)
+        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.2, 4.0], 0.01)
       });
 
       context.expect_feedback_empty();
@@ -246,7 +246,7 @@ mod tests {
       context.expect_progress_with(|running, time, levels| {
         assert!(!running);
         assert_approx_eq!(time, DELTA_TIME * 2.0);
-        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.2, 4.0], 0.01)
+        assert_slice_approx_eq_with_epsilon(levels.as_slice(), &[1.4, 4.0], 0.01)
       });
 
       context.expect_feedback_empty();
@@ -287,7 +287,7 @@ mod tests {
 
       context.expect_progress_with(|running, time, _| {
         assert!(running);
-        assert_approx_eq!(time, FORWARD_HOURS, 0.1);
+        assert_approx_eq!(time, FORWARD_HOURS, DELTA_TIME + 0.1);
       });
 
       context.expect_feedback_with(|event| {
@@ -300,7 +300,7 @@ mod tests {
 
       context.expect_progress_with(|running, time, _| {
         assert!(!running);
-        assert_approx_eq!(time, FORWARD_HOURS * 2.0, 0.1);
+        assert_approx_eq!(time, FORWARD_HOURS * 2.0, DELTA_TIME + 0.1);
       });
 
       context.expect_feedback_empty();

@@ -109,7 +109,7 @@ mod tests {
           panic!("Expected a progress event, but found: {:?}", event);
         }
       }
-      assert_eq!(counter, 20);
+      assert_eq!(counter, 11);
       client_events.close().await.unwrap();
     })
     .await;

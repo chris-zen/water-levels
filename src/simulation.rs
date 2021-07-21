@@ -182,7 +182,7 @@ pub mod tests {
     sim.step();
 
     let levels = sim.get_levels();
-    assert_slice_approx_eq(levels.as_slice(), &[1.1, 8.0]);
+    assert_slice_approx_eq(levels.as_slice(), &[1.2, 8.0]);
   }
 
   #[test]
